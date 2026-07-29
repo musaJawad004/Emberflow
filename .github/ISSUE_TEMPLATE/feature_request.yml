@@ -1,0 +1,53 @@
+name: Feature request
+description: Propose an improvement or new capability for Emberflow
+title: "feat: <short description>"
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Check [docs/issues/](../tree/main/docs/issues) first — several planned
+        improvements are already drafted there and welcome contributors.
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: What can't you do today, or what is painful?
+      placeholder: |
+        Every run re-installs dependencies from scratch, so even trivial
+        pipelines take minutes.
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution
+      description: What should Emberflow do? Sketch the UX/API if relevant.
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: Other approaches and why they fall short.
+  - type: dropdown
+    id: component
+    attributes:
+      label: Component
+      options:
+        - server (API / worker / runner)
+        - dashboard
+        - pipeline format (emberflow.yml)
+        - deploy / rollback
+        - analyst
+        - docker compose setup
+        - docs
+        - other
+    validations:
+      required: true
+  - type: checkboxes
+    id: contribution
+    attributes:
+      label: Contribution
+      options:
+        - label: I'd be willing to implement this behind a PR

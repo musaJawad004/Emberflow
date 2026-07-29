@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Security vulnerability
+    url: https://github.com/musaJawad004/emberflow/blob/main/SECURITY.md
+    about: Please report vulnerabilities privately by email — not as public issues.
+  - name: Question / discussion
+    url: https://github.com/musaJawad004/emberflow/discussions
+    about: Ask questions or discuss ideas before they become issues.
