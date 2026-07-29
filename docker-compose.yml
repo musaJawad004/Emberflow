@@ -1,0 +1,46 @@
+# Emberflow — full stack: redis + server (:4100) + dashboard (:3100).
+#
+# The server container drives the HOST docker daemon via the mounted socket,
+# so stage volume paths must exist on the host at the same absolute path.
+# That is why /tmp/emberflow-runs is bind-mounted 1:1 below.
+# Details: docs/CONFIGURATION.md → "Running under Docker Compose".
+
+services:
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379" # published so a host-run server can share it during dev
+    restart: unless-stopped
+
+  server:
+    build: ./server
+    ports:
+      - "4100:4100"
+    environment:
+      REDIS_URL: redis://redis:6379
+      # EMBER_WEBHOOK_SECRET: change-me
+      # GROQ_API_KEY: gsk_...
+      # GROQ_MODEL: llama-3.3-70b-versatile
+    volumes:
+      # Talk to the host docker daemon (root-equivalent — see SECURITY.md).
+      - /var/run/docker.sock:/var/run/docker.sock
+      # Run workdirs MUST live at the identical path on host and container:
+      # stage containers are started by the HOST daemon, which resolves
+      # -v <workdir>:/app against the HOST filesystem.
+      - /tmp/emberflow-runs:/tmp/emberflow-runs
+      # Persist the SQLite database across container rebuilds.
+      - ember-data:/app/data
+    depends_on:
+      - redis
+    restart: unless-stopped
+
+  dashboard:
+    build: ./dashboard
+    ports:
+      - "3100:3100"
+    depends_on:
+      - server
+    restart: unless-stopped
+
+volumes:
+  ember-data:
