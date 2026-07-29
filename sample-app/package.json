@@ -1,0 +1,11 @@
+{
+  "name": "sample-app",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "lint": "node --check src/calc.js && node --check src/calc.test.js && echo 'lint: all files parse cleanly'",
+    "test": "node --test src/calc.test.js",
+    "build": "node scripts/build.js"
+  }
+}

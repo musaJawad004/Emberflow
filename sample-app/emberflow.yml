@@ -1,0 +1,19 @@
+name: sample-app
+image: node:20-alpine
+stages:
+  - id: install
+    run: npm install
+  - id: lint
+    needs: [install]
+    run: npm run lint
+  - id: test
+    needs: [install]
+    run: npm test
+  - id: build
+    needs: [lint, test]
+    run: npm run build
+deploy:
+  needs: [build]
+  start: node src/server.js
+  port: 8080
+  hostPort: 8200
