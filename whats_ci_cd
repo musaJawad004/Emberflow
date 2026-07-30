@@ -1,0 +1,38 @@
+# CI/CD Explained
+
+## What is CI/CD?
+
+**CI/CD** stands for **Continuous Integration** and **Continuous
+Deployment (or Continuous Delivery)**.
+
+-   **Continuous Integration (CI):** Developers frequently merge code
+    into a shared repository. Automated builds and tests run to catch
+    bugs early.
+-   **Continuous Deployment/Delivery (CD):** After the code passes all
+    tests, it is automatically (or with approval) deployed to staging or
+    production.
+
+## CI/CD Pipeline
+
+1.  Developer writes code.
+2.  Code is pushed to Git.
+3.  CI server builds the project.
+4.  Automated tests run.
+5.  If successful, the application is deployed.
+
+## Benefits
+
+-   Faster releases
+-   Fewer bugs
+-   Automated testing
+-   Consistent deployments
+-   Improved team collaboration
+
+## Popular CI/CD Tools
+
+-   GitHub Actions
+-   GitLab CI/CD
+-   Jenkins
+-   CircleCI
+-   Azure DevOps
+-   Bitbucket Pipelines
