@@ -1,3 +1,6 @@
+// Tiny HTTP server the deploy stage runs. /health returns { ok: true } for
+// health checks; every other path returns app info, a demo add(2, 3) result,
+// and the build metadata from dist/build-info.json when the build stage ran.
 import { createServer } from 'node:http';
 import { readFileSync, existsSync } from 'node:fs';
 import { add } from './calc.js';

@@ -1,3 +1,6 @@
+// Build step for the sample pipeline: copies src/calc.js into dist/ and
+// writes dist/build-info.json (build time + node version), which the
+// server exposes on its info endpoint.
 import { mkdirSync, copyFileSync, writeFileSync } from 'node:fs';
 
 mkdirSync('dist', { recursive: true });

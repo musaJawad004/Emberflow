@@ -1,9 +1,20 @@
+/**
+ * @file React hook for the Emberflow server's WebSocket feed (`WS_URL`,
+ * ws://localhost:4100/ws). Maintains a single connection per mounted
+ * component, parses incoming frames as `EmberEvent` JSON, and reconnects
+ * with exponential backoff (capped at 15s) when the connection drops.
+ */
 "use client";
 
 import { useEffect, useRef, useState } from "react";
 import { WS_URL } from "./api";
 import type { EmberEvent } from "./types";
 
+/**
+ * Connection state exposed by {@link useEmberSocket}. There is no distinct
+ * "closed" state: the hook always retries, so a lost connection reports
+ * `reconnecting` until the socket opens again.
+ */
 export type SocketStatus =
   | "connecting" // first attempt, nothing to worry about yet
   | "open"

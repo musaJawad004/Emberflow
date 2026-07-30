@@ -1,3 +1,10 @@
+/**
+ * @file Deployments page: the active (running) deployment as a highlighted
+ * card with a live uptime counter, plus a history table with rollback
+ * buttons on stopped rows. Seeded via GET /api/deployments and kept fresh
+ * by deployment:update WebSocket events, with offline retry + reconnect
+ * backfill.
+ */
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
@@ -19,6 +26,11 @@ function mergeDeployment(list: Deployment[], d: Deployment): Deployment[] {
   return next.sort((a, b) => b.created_at - a.created_at);
 }
 
+/**
+ * Client component behind the /deployments route. REST and WS updates are
+ * merged by deployment id (newest-first) so neither source clobbers the
+ * other, and a 1s tick keeps the active deployment's uptime counting up.
+ */
 export function DeploymentList() {
   const [deployments, setDeployments] = useState<Deployment[] | null>(null);
   const [fetchFailed, setFetchFailed] = useState(false);

@@ -1,7 +1,9 @@
 # Emberflow Server
 
 Fastify HTTP/WS API + BullMQ worker + pipeline runner, in one Node.js process.
-Plain JavaScript, ESM, no build step.
+Plain JavaScript, ESM, no build step. Splitting the API and worker into
+separate processes is tracked in
+[issues/007](../docs/issues/007-split-api-server-and-queue-worker.md).
 
 ## Run
 
@@ -71,7 +73,7 @@ Full reference with examples: [docs/CONFIGURATION.md](../docs/CONFIGURATION.md).
 | `GROQ_MODEL` | `llama-3.3-70b-versatile` | Analyst model |
 
 Run workdirs live at `/tmp/emberflow-runs/<runId>/repo`; the last 20 are kept
-for rollback, older ones are pruned.
+for rollback and older ones are pruned.
 
 ## Docker
 

@@ -13,7 +13,7 @@ fixes.
 
 **Please do not open a public GitHub issue for security vulnerabilities.**
 
-Email **contact@glixentech.com** with:
+Email **musajawad004@gmail.com** with:
 
 - A description of the vulnerability and its impact
 - Steps to reproduce (a minimal proof of concept is ideal)

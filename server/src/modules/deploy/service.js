@@ -35,6 +35,7 @@ export async function deployRun(run, deploy, workdir) {
     startCmd: deploy.start,
     port: deploy.port,
     hostPort: deploy.hostPort,
+    healthPath: deploy.healthPath,
     workdir,
     rolledBackFrom: null,
   });
@@ -60,6 +61,7 @@ export async function rollbackDeployment(deploymentId) {
     startCmd: target.start_cmd,
     port: target.port,
     hostPort: target.host_port,
+    healthPath: target.health_path ?? '/',
     workdir,
     rolledBackFrom: target.id,
   });
@@ -75,9 +77,10 @@ async function stopCurrentDeployment(repoName) {
   });
 }
 
-// Starts the container, waits 2s, verifies it is still up, then records the
-// deployment as running or failed (failure details land in the run's system logs).
-async function startDeployment({ runId, repoName, image, startCmd, port, hostPort, workdir, rolledBackFrom }) {
+// Starts the container, probes its published port over HTTP until the app
+// answers, then records the deployment as running or failed (probe progress
+// and failure details land in the run's system logs).
+async function startDeployment({ runId, repoName, image, startCmd, port, hostPort, healthPath, workdir, rolledBackFrom }) {
   const containerName = deployContainerName(repoName);
   await removeContainer(containerName); // clear any orphan holding the name
 
@@ -88,8 +91,8 @@ async function startDeployment({ runId, repoName, image, startCmd, port, hostPor
     image, 'sh', '-c', startCmd,
   ]);
 
-  await new Promise((resolve) => setTimeout(resolve, 2000));
-  const running = result.code === 0 && await isContainerRunning(containerName);
+  const running = result.code === 0
+    && await probeHealth({ runId, containerName, hostPort, healthPath });
 
   if (!running) {
     const detail = result.code !== 0
@@ -108,6 +111,7 @@ async function startDeployment({ runId, repoName, image, startCmd, port, hostPor
     start_cmd: startCmd,
     port,
     host_port: hostPort,
+    health_path: healthPath,
     status: running ? 'running' : 'failed',
     rolled_back_from: rolledBackFrom,
     created_at: Date.now(),
@@ -116,14 +120,44 @@ async function startDeployment({ runId, repoName, image, startCmd, port, hostPor
   return deployment;
 }
 
-// Deploy problems become system log lines on the run's last stage.
-function logDeployFailure(runId, lines) {
+// Polls http://127.0.0.1:<hostPort><healthPath>; any HTTP status < 400 counts
+// as healthy. A container that exited fast-fails the probe between attempts.
+async function probeHealth({ runId, containerName, hostPort, healthPath }) {
+  const url = `http://127.0.0.1:${hostPort}${healthPath}`;
+  const attempts = config.deployProbeAttempts;
+  for (let attempt = 1; attempt <= attempts; attempt++) {
+    if (!(await isContainerRunning(containerName))) {
+      logDeploySystem(runId, `health probe aborted — container exited (attempt ${attempt}/${attempts})`);
+      return false;
+    }
+    try {
+      const res = await fetch(url, { signal: AbortSignal.timeout(2000) });
+      if (res.status < 400) {
+        logDeploySystem(runId, `health probe passed: HTTP ${res.status} from ${url} (attempt ${attempt}/${attempts})`);
+        return true;
+      }
+      logDeploySystem(runId, `health probe ${attempt}/${attempts}: HTTP ${res.status} from ${url}`);
+    } catch (err) {
+      logDeploySystem(runId, `health probe ${attempt}/${attempts}: ${err.cause?.code ?? err.name}`);
+    }
+    await new Promise((resolve) => setTimeout(resolve, config.deployProbeIntervalMs));
+  }
+  logDeploySystem(runId, `health probe failed after ${attempts} attempts: ${url}`);
+  return false;
+}
+
+// Deploy events become system log lines on the run's last stage.
+function logDeploySystem(runId, line) {
   const stages = getStagesForRun(runId);
   const anchor = stages[stages.length - 1];
   if (!anchor) return;
+  const ts = Date.now();
+  insertLog(anchor.id, ts, 'system', line);
+  broadcast({ type: 'log', runId, stageId: anchor.stage_id, stream: 'system', line, ts });
+}
+
+function logDeployFailure(runId, lines) {
   for (const line of ['deploy failed — container is not running:', ...lines.filter(Boolean)]) {
-    const ts = Date.now();
-    insertLog(anchor.id, ts, 'system', line);
-    broadcast({ type: 'log', runId, stageId: anchor.stage_id, stream: 'system', line, ts });
+    logDeploySystem(runId, line);
   }
 }

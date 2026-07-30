@@ -3,7 +3,7 @@
 This document explains how Emberflow is put together: the components, the life
 of a run from trigger to deploy, what each module owns, and the data model.
 The normative server ↔ dashboard contract (exact API shapes, WS payloads,
-schema DDL) is [SPEC.md](SPEC.md); this document is the guided tour.
+schema DDL) lives in [SPEC.md](SPEC.md); this document is the guided tour.
 
 ## Components
 
@@ -11,7 +11,7 @@ schema DDL) is [SPEC.md](SPEC.md); this document is the guided tour.
 | ---------- | ----------------------------------------------- | ---- |
 | server     | Node.js + Fastify 5, BullMQ (Redis), SQLite     | 4100 |
 | dashboard  | Next.js (App Router) + Tailwind + @xyflow/react | 3100 |
-| sample-app | Guinea-pig app; its deployment serves on        | 8200 |
+| sample-app | Guinea-pig app; when deployed it serves on      | 8200 |
 
 ```
                        ┌────────────────────────────────────────────┐
@@ -48,7 +48,8 @@ Design principles (enforced by the folder conventions in SPEC.md):
 
 ### 1. Trigger
 
-Three entry points converge on the same "create run" service:
+All trigger paths — local path, git URL, and GitHub webhook — converge on the
+same "create run" service:
 
 - **Dashboard / REST** — `POST /api/runs` with `{ localPath }` (a directory on
   the server machine containing `emberflow.yml`) or `{ gitUrl, ref? }`.
@@ -188,7 +189,7 @@ Five tables in one SQLite database (default `server/data/emberflow.db`).
 | --- | --- | --- |
 | `runs` | pipeline run | `trigger` (`manual`\|`webhook`), `repo_name`, `repo_url`, `commit_sha`, `status` (`queued`\|`running`\|`passed`\|`failed`\|`canceled`), created/started/finished timestamps |
 | `stages` | stage within a run | `stage_id` (from the yml), `needs` (JSON), `command`, `image`, `status` (adds `pending`/`skipped`), `exit_code`, timings |
-| `logs` | log line | `stage_pk` → stages, `ts` (ms), `stream` (`stdout`\|`stderr`\|`system`), `line`. Append-only and currently unpruned — see [issues/010](issues/010-log-table-retention.md) |
+| `logs` | log line | `stage_pk` → stages, `ts` (ms), `stream` (`stdout`\|`stderr`\|`system`), `line`. Append-only and currently unpruned — see [issues/010](issues/010-logs-table-unbounded-growth.md) |
 | `analyses` | Groq diagnosis | `run_id`, `model`, `diagnosis` text |
 | `deployments` | deploy attempt | `run_id`, `repo_name`, `container_name`, ports, `status` (`running`\|`stopped`\|`failed`), `rolled_back_from` (deployment id it was restored from) |
 
