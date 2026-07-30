@@ -80,8 +80,8 @@ curl -X POST http://localhost:4100/api/runs \
 ```
 
 `./scripts/demo.sh` checks prerequisites and prints ready-made commands for a
-green run, a deliberately failing run (to see the AI analyst), and the
-deployment check.
+green run, a deliberately failing run (to see the AI analyst), and checking
+the resulting deployment.
 
 ### Option B — Docker Compose
 
@@ -97,8 +97,8 @@ before triggering runs.
 
 ## Pipelines — `emberflow.yml`
 
-Any folder (or git repository) with an `emberflow.yml` at its root can be run
-through Emberflow:
+Any folder (or git repository) with an `emberflow.yml` at its root can be built
+by Emberflow:
 
 ```yaml
 name: sample-app
@@ -141,6 +141,7 @@ its transitive dependents `skipped` and the run `failed`; a stage may override
 | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | Components, run lifecycle, module map, data model |
 | [docs/CONFIGURATION.md](docs/CONFIGURATION.md) | Every env var, webhook setup, Groq setup, compose caveats |
 | [docs/SPEC.md](docs/SPEC.md) | The server ↔ dashboard contract (API, WS events, schema) |
+| [docs/API.md](docs/API.md) | REST + WebSocket API reference with example payloads |
 | [server/README.md](server/README.md) | Server module map, scripts, environment |
 | [dashboard/README.md](dashboard/README.md) | Dashboard module map, theme token rules |
 | [sample-app/README.md](sample-app/README.md) | The guinea-pig app and its pipeline, explained |
@@ -158,7 +159,7 @@ starting points are labeled in [docs/issues/](docs/issues/).
 ## Credits
 
 Maintained by **Muhammad Musa**
-([@musaJawad004](https://github.com/musaJawad004) · contact@glixentech.com).
+([@musaJawad004](https://github.com/musaJawad004) · musajawad004@gmail.com).
 
 Developed with AI pair-programming via [Claude Code](https://claude.com/claude-code).
 

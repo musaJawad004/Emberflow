@@ -143,4 +143,4 @@ Note in the PR description which of these you ran.
 
 Open a discussion or issue for questions. All participation is covered by the
 [Code of Conduct](CODE_OF_CONDUCT.md); conduct reports go to
-**contact@glixentech.com**.
+**musajawad004@gmail.com**.

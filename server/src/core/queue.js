@@ -1,3 +1,8 @@
+/**
+ * BullMQ glue between the HTTP layer and the pipeline runner: the shared
+ * `emberflow-runs` queue (Redis-backed) plus the worker that pulls jobs and
+ * calls runPipeline. Route handlers enqueue; index.js starts the worker.
+ */
 import { Queue, Worker } from 'bullmq';
 import { config } from '../config/index.js';
 import { runPipeline } from '../modules/pipeline/runner.js';
@@ -13,10 +18,12 @@ const connection = {
 
 export const runQueue = new Queue('emberflow-runs', { connection });
 
+/** Adds a job for the run; the last 100 completed/failed jobs are kept in Redis. */
 export function enqueueRun(runId) {
   return runQueue.add('run', { runId }, { removeOnComplete: 100, removeOnFail: 100 });
 }
 
+/** Starts the worker that executes queued runs; returns it so shutdown can close it. */
 export function startWorker() {
   const worker = new Worker('emberflow-runs', (job) => runPipeline(job.data.runId), { connection });
 

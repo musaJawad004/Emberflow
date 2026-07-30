@@ -1,3 +1,9 @@
+/**
+ * Central configuration. Loads server/.env (values already in the real
+ * environment win), then exports the single `config` object the rest of the
+ * server imports: port, db/redis/Groq settings, executor mode, and pipeline
+ * limits (timeouts, log cap, workdir retention).
+ */
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -35,6 +41,8 @@ export const config = {
   groqModel: process.env.GROQ_MODEL ?? 'llama-3.3-70b-versatile',
 
   runsDir: '/tmp/emberflow-runs',
+  deployProbeAttempts: 15, // health probe: attempts × interval ≈ 30s max wait
+  deployProbeIntervalMs: 2000,
   stageTimeoutMs: 10 * 60 * 1000,
   runTimeoutMs: 30 * 60 * 1000,
   logLineCap: 5000,

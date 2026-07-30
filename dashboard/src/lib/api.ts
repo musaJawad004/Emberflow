@@ -1,6 +1,13 @@
+/**
+ * @file Typed REST client for the Emberflow server (docs/SPEC.md).
+ * Thin fetch wrappers, one function per endpoint; all requests bypass the
+ * Next.js fetch cache and non-2xx responses reject with {@link ApiError}.
+ */
 import type { Analysis, Deployment, LogRow, Run, Stage } from "./types";
 
+/** Base URL of the Emberflow server's REST API. */
 export const API_BASE = "http://localhost:4100";
+/** WebSocket endpoint for live events — consumed by useEmberSocket. */
 export const WS_URL = "ws://localhost:4100/ws";
 
 /** The repo the "sample-app" trigger preset builds (resolved at build time
@@ -8,6 +15,7 @@ export const WS_URL = "ws://localhost:4100/ws";
 export const SAMPLE_APP_PATH =
   process.env.NEXT_PUBLIC_SAMPLE_APP_PATH ?? "../sample-app";
 
+/** Non-2xx API response; `status` carries the HTTP status code. */
 export class ApiError extends Error {
   constructor(public status: number, message: string) {
     super(message);
@@ -36,14 +44,17 @@ async function postJson<T>(path: string, body?: unknown): Promise<T> {
 
 /* ---------------------------------------------------------------- runs */
 
+/** GET /api/runs — recent runs, newest first (server caps the list at 50). */
 export function fetchRuns(): Promise<{ runs: Run[] }> {
   return getJson("/api/runs");
 }
 
+/** GET /api/runs/:id — one run plus its stages. 404 → ApiError(404). */
 export function fetchRun(id: string): Promise<{ run: Run; stages: Stage[] }> {
   return getJson(`/api/runs/${encodeURIComponent(id)}`);
 }
 
+/** GET /api/runs/:id/logs?stage= — stored log rows for one stage. */
 export function fetchStageLogs(
   runId: string,
   stageId: string,
@@ -72,6 +83,7 @@ export function cancelRun(id: string): Promise<{ ok: true }> {
 
 /* ------------------------------------------------------------- analyst */
 
+/** GET /api/runs/:id/analysis — Groq diagnosis, or null if none yet. */
 export function fetchAnalysis(
   runId: string,
 ): Promise<{ analysis: Analysis | null }> {
@@ -80,6 +92,7 @@ export function fetchAnalysis(
 
 /* -------------------------------------------------------- deployments */
 
+/** GET /api/deployments — all deployments, newest first. */
 export function fetchDeployments(): Promise<{ deployments: Deployment[] }> {
   return getJson("/api/deployments");
 }
