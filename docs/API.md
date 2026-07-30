@@ -230,6 +230,7 @@ All deployments, newest first.
       "start_cmd": "node src/server.js",
       "port": 8080,
       "host_port": 8200,
+      "health_path": "/health",
       "status": "running",
       "rolled_back_from": null,
       "created_at": 1753862455000,
