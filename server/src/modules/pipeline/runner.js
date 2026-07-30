@@ -1,3 +1,9 @@
+/**
+ * Pipeline runner — the worker side of a run. Prepares the workdir (git clone
+ * or local copy), parses emberflow.yml, executes the stage DAG with
+ * cancel/timeout handling, then hands off to the analyst (on failure) or
+ * deploy (on success), and finally prunes old run workdirs.
+ */
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { nanoid } from 'nanoid';
@@ -18,6 +24,10 @@ import { deployRun } from '../deploy/service.js';
 
 // Orchestrates one run end-to-end: workdir prep → parse → DAG execution →
 // analyst (failed) / deploy (passed) → workdir retention.
+/**
+ * @param {string} runId - No-op unless the run is still 'queued'.
+ * Never throws: clone/parse/internal errors finalize the run as failed.
+ */
 export async function runPipeline(runId) {
   let run = getRun(runId);
   if (!run || run.status !== 'queued') return; // e.g. canceled while still queued
