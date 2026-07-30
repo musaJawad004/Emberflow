@@ -1,3 +1,8 @@
+/**
+ * @file Terminal-style log viewer for a single stage. Renders ANSI-colored
+ * lines (via anser, no innerHTML), tints stderr/system streams, and
+ * auto-follows new output until the user scrolls up.
+ */
 "use client";
 
 import { memo, useEffect, useRef, useState, type CSSProperties } from "react";
@@ -44,6 +49,12 @@ const AnsiLine = memo(function AnsiLine({ line }: { line: string }) {
   );
 });
 
+/**
+ * The log panel on the run-detail page. Purely presentational: the parent
+ * supplies the merged history + live `lines` for the selected `stage`.
+ * Scroll position "pins" to the bottom while the user is near it; scrolling
+ * up unpins and shows a "follow" button to resume tailing.
+ */
 export function LogTerminal({
   stage,
   lines,
