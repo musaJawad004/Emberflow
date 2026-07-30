@@ -7,9 +7,35 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [0.1.0] - 2026-07-29
+## [0.0.3] - 2026-07-29
 
-First public release.
+The open-source release.
+
+### Added
+
+- **Sample app** — a small Node HTTP service (serves on `:8200` when deployed)
+  with lint/test/build stages and a `deploy` section; used by the demo script
+  and the dashboard's trigger preset.
+- **Docs suite** — README, ARCHITECTURE, CONFIGURATION, SPEC, per-package
+  READMEs, CONTRIBUTING (branching model + conventional commits),
+  CODE_OF_CONDUCT, SECURITY, and 11 drafted issues under `docs/issues/`.
+- **GitHub project files** — issue templates, PR template, and a CI workflow
+  (server syntax check; dashboard build + type check).
+- **Docker Compose stack** — `docker compose up` starts Redis, the server, and
+  the dashboard; server drives the host Docker daemon via the mounted socket
+  (see the caveat in CONFIGURATION).
+
+## [0.0.2] - 2026-07-29
+
+### Added
+
+- **Mission-control dashboard** — Next.js app on `:3100` with a live run list,
+  an animated stage DAG (@xyflow/react), an ANSI-aware log terminal, a Groq
+  diagnosis card on failed runs, a deployments page with one-click rollback,
+  and a trigger menu for the sample app or any git URL / local path. Dark
+  theme driven entirely by design tokens in `theme/theme.css`.
+
+## [0.0.1] - 2026-07-29
 
 ### Added
 
@@ -25,9 +51,6 @@ First public release.
 - **Live log streaming** — stdout/stderr/system lines and status transitions
   are persisted to SQLite and broadcast over WebSocket (`log`, `run:update`,
   `stage:update` events).
-- **Mission-control dashboard** — Next.js app on `:3100` with a live run list,
-  an animated stage DAG (@xyflow/react), an ANSI-aware log terminal, and a
-  trigger menu for the sample app or any git URL / local path.
 - **GitHub webhook triggers** — `POST /webhook/github` receives push events,
   verifies the `x-hub-signature-256` HMAC against `EMBER_WEBHOOK_SECRET`,
   clones the repository at the pushed commit, and starts a run.
@@ -41,15 +64,13 @@ First public release.
   gracefully when `GROQ_API_KEY` is unset.
 - **Auto-deploy + rollback** — a green run whose `emberflow.yml` has a
   `deploy` section starts the app in a published container
-  (`ember-deploy-<repoName>`); the `/deployments` page shows the active
-  deployment and history with one-click rollback to any stopped deployment
-  whose workdir is still retained (last 20 run workdirs are kept).
+  (`ember-deploy-<repoName>`); the API tracks deployment history with rollback
+  to any stopped deployment whose workdir is still retained (last 20 kept).
 - **Hardening** — per-stage timeout (10 min), per-run timeout (30 min),
   5000-line log cap per stage, spawn-with-arg-arrays everywhere, trigger input
   validation, graceful shutdown, `.env` loading with `server/.env.example`.
-- **Sample app** — a small Node HTTP service (serves on `:8200` when deployed)
-  with lint/test/build stages, used by the demo script and the dashboard's
-  trigger preset.
 
-[Unreleased]: https://github.com/musaJawad004/emberflow/compare/v0.1.0...HEAD
-[0.1.0]: https://github.com/musaJawad004/emberflow/releases/tag/v0.1.0
+[Unreleased]: https://github.com/musaJawad004/Emberflow/compare/v0.0.3...HEAD
+[0.0.3]: https://github.com/musaJawad004/Emberflow/releases/tag/v0.0.3
+[0.0.2]: https://github.com/musaJawad004/Emberflow/releases/tag/v0.0.2
+[0.0.1]: https://github.com/musaJawad004/Emberflow/releases/tag/v0.0.1
