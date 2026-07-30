@@ -80,8 +80,8 @@ curl -X POST http://localhost:4100/api/runs \
 ```
 
 `./scripts/demo.sh` checks prerequisites and prints ready-made commands for a
-green run, a deliberately failing run (to see the AI analyst), and the
-deployment check.
+green run, a deliberately failing run (to see the AI analyst), and checking
+the resulting deployment.
 
 ### Option B — Docker Compose
 
@@ -97,8 +97,8 @@ before triggering runs.
 
 ## Pipelines — `emberflow.yml`
 
-Any folder (or git repository) with an `emberflow.yml` at its root can be run
-through Emberflow:
+Any folder (or git repository) with an `emberflow.yml` at its root can be built
+by Emberflow:
 
 ```yaml
 name: sample-app
