@@ -96,6 +96,11 @@ are satisfied run in parallel; failure marks transitive dependents `skipped`, ru
    Containers are NAMED so cancel can `docker rm -f` them. `EMBER_EXECUTOR=local`
    remains the dev fallback.
 4. Log lines + status transitions → SQLite + WS broadcast (as v0).
+   If the run dies before stage rows exist (clone failure, missing or invalid
+   emberflow.yml), the runner creates a single synthetic stage with
+   `stage_id: "pipeline"`, marks it `failed`, and attaches the error as a
+   system log line — so config errors are visible on the run page, not only
+   in the server console.
 5. Run finishes:
    - **failed** → analyst module fires (see below).
    - **passed + emberflow.yml has `deploy`** → deploy module fires (see below).
