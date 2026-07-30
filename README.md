@@ -159,7 +159,7 @@ starting points are labeled in [docs/issues/](docs/issues/).
 ## Credits
 
 Maintained by **Muhammad Musa**
-([@musaJawad004](https://github.com/musaJawad004) · contact@glixentech.com).
+([@musaJawad004](https://github.com/musaJawad004) · musajawad004@gmail.com).
 
 Developed with AI pair-programming via [Claude Code](https://claude.com/claude-code).
 
