@@ -1,3 +1,9 @@
+/**
+ * AI failure analyst. When a run finishes as failed, feeds the failed stages'
+ * trailing log lines to Groq and stores/broadcasts the diagnosis for the UI.
+ * Entirely optional: a missing GROQ_API_KEY or any API error degrades to a
+ * system log line instead of affecting the run.
+ */
 import { nanoid } from 'nanoid';
 import { config } from '../../config/index.js';
 import { broadcast } from '../../core/ws.js';
@@ -12,6 +18,7 @@ const LOG_LINES_PER_STAGE = 80;
 // Called when a run finishes as failed (never for canceled runs): collects the
 // failed stages' logs, asks Groq for a diagnosis, stores + broadcasts it.
 // Missing API key or API/network errors skip gracefully with a system log line.
+/** @param {string} runId - No-op unless the run's status is 'failed' with at least one failed stage. */
 export async function analyzeRun(runId) {
   const run = getRun(runId);
   if (!run || run.status !== 'failed') return;
