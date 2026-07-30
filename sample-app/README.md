@@ -1,8 +1,8 @@
 # Emberflow Sample App
 
 A deliberately small Node.js HTTP service whose only job is to be built,
-tested, deployed, and broken by Emberflow. It is the "sample-app" preset in
-the dashboard's trigger menu and the subject of `scripts/demo.sh`.
+tested, deployed, and broken by Emberflow. It backs the "sample-app" preset in
+the dashboard's trigger menu and is the subject of `scripts/demo.sh`.
 
 ## What it demonstrates
 
@@ -22,7 +22,7 @@ name: sample-app
 image: node:20-alpine        # default image for every stage
 stages:
   - id: install
-    run: npm install         # runs first — nothing depends on it yet
+    run: npm install         # runs first — it has no needs of its own
   - id: lint
     needs: [install]         # lint and test both wait for install,
     run: npm run lint        # then run IN PARALLEL in separate containers
