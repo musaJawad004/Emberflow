@@ -5,7 +5,7 @@ pipeline of stages in isolated Docker containers, streams logs live over WebSock
 diagnoses failures with an LLM (Groq), deploys green builds, and can roll back — all
 visible on a mission-control dashboard.
 
-This document is the contract between the server and the dashboard.
+This document is the binding contract between the server and the dashboard.
 v1 = v0 + folder-structure conventions + Day 2–5 features (webhooks, cancel, Groq
 failure analyst, deploy/rollback, hardening).
 
@@ -15,7 +15,7 @@ failure analyst, deploy/rollback, hardening).
 |------------|-------------------------------------------------|------|
 | server     | Node.js + Fastify 5, BullMQ (Redis), SQLite     | 4100 |
 | dashboard  | Next.js (App Router) + Tailwind + @xyflow/react | 3100 |
-| sample-app | Guinea pig app; its deploy serves on            | 8200 |
+| sample-app | Guinea pig app; when deployed it serves on      | 8200 |
 
 ## Folder structure (mandatory conventions)
 
@@ -207,10 +207,10 @@ v0 events unchanged (`hello`, `run:update`, `stage:update`, `log`). New:
   "custom…" (input for git URL or local path). Canceled pill style.
 - `/runs/[id]` (as v0) plus:
   - **Cancel button** (visible while queued/running).
-  - **DiagnosisCard** below the DAG when the run failed: shows Groq diagnosis
+  - **DiagnosisCard** below the DAG when the run failed: shows the Groq diagnosis
     (arrives live via `analysis` WS event, or REST on load); shows a subtle
-    "analyst skipped — no GROQ_API_KEY" note if run failed and no analysis exists
-    after finish + the system log line says skipped.
+    "analyst skipped — no GROQ_API_KEY" note if the run failed, no analysis exists
+    after finish, and the system log line says skipped.
   - Deploy result strip when the run deployed (link to /deployments).
 - `/deployments` — active deployment card (repo, port, uptime, link to
   http://localhost:<hostPort>) + history table with Rollback buttons on stopped rows.
