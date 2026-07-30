@@ -11,7 +11,13 @@ export class PipelineError extends Error {
 
 // Parses + validates emberflow.yml text into { name, stages, deploy }.
 export function parseEmberfile(text) {
-  const doc = YAML.parse(text);
+  let doc;
+  try {
+    doc = YAML.parse(text);
+  } catch (err) {
+    // YAML syntax errors span multiple lines; the first line carries the point.
+    throw new PipelineError(`emberflow.yml is not valid YAML: ${err.message.split('\n')[0]}`);
+  }
   if (!doc || !Array.isArray(doc.stages) || doc.stages.length === 0) {
     throw new PipelineError('emberflow.yml must define a non-empty "stages" list');
   }
