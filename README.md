@@ -141,6 +141,7 @@ its transitive dependents `skipped` and the run `failed`; a stage may override
 | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | Components, run lifecycle, module map, data model |
 | [docs/CONFIGURATION.md](docs/CONFIGURATION.md) | Every env var, webhook setup, Groq setup, compose caveats |
 | [docs/SPEC.md](docs/SPEC.md) | The server ↔ dashboard contract (API, WS events, schema) |
+| [docs/API.md](docs/API.md) | REST + WebSocket API reference with example payloads |
 | [server/README.md](server/README.md) | Server module map, scripts, environment |
 | [dashboard/README.md](dashboard/README.md) | Dashboard module map, theme token rules |
 | [sample-app/README.md](sample-app/README.md) | The guinea-pig app and its pipeline, explained |
