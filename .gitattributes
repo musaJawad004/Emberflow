@@ -1,0 +1,6 @@
+# Normalize line endings to LF for all text files.
+* text=auto eol=lf
+
+# Keep generated/doc files out of language stats and collapsed in diffs.
+package-lock.json linguist-generated
+*.md linguist-documentation
