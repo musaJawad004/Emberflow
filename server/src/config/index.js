@@ -1,3 +1,9 @@
+/**
+ * Central configuration. Loads server/.env (values already in the real
+ * environment win), then exports the single `config` object the rest of the
+ * server imports: port, db/redis/Groq settings, executor mode, and pipeline
+ * limits (timeouts, log cap, workdir retention).
+ */
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';

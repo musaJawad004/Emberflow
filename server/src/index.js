@@ -1,3 +1,9 @@
+/**
+ * Emberflow server entrypoint. Builds the Fastify app (CORS for the dashboard
+ * origin, websocket support, runs/webhook/deploy routes plus the WS route),
+ * starts the BullMQ worker, and listens on config.port. SIGINT/SIGTERM run an
+ * ordered shutdown: worker → queue → ws clients → http server → sqlite.
+ */
 // Bootstrap only: config → db → queue → http. All feature logic lives in modules/.
 import Fastify from 'fastify';
 import cors from '@fastify/cors';
