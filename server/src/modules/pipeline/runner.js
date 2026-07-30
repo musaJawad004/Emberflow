@@ -1,3 +1,9 @@
+/**
+ * Pipeline runner — the worker side of a run. Prepares the workdir (git clone
+ * or local copy), parses emberflow.yml, executes the stage DAG with
+ * cancel/timeout handling, then hands off to the analyst (on failure) or
+ * deploy (on success), and finally prunes old run workdirs.
+ */
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { nanoid } from 'nanoid';
@@ -18,6 +24,10 @@ import { deployRun } from '../deploy/service.js';
 
 // Orchestrates one run end-to-end: workdir prep → parse → DAG execution →
 // analyst (failed) / deploy (passed) → workdir retention.
+/**
+ * @param {string} runId - No-op unless the run is still 'queued'.
+ * Never throws: clone/parse/internal errors finalize the run as failed.
+ */
 export async function runPipeline(runId) {
   let run = getRun(runId);
   if (!run || run.status !== 'queued') return; // e.g. canceled while still queued
@@ -44,7 +54,14 @@ export async function runPipeline(runId) {
     run = await prepareWorkdir(run, workdir);
     if (shouldStop() === 'canceled') return;
 
-    const pipeline = parseEmberfile(await fs.readFile(path.join(workdir, 'emberflow.yml'), 'utf8'));
+    let emberfileText;
+    try {
+      emberfileText = await fs.readFile(path.join(workdir, 'emberflow.yml'), 'utf8');
+    } catch {
+      // Reachable for git-cloned repos: POST validation only checks localPath triggers.
+      throw new PipelineError('emberflow.yml not found in the repository root');
+    }
+    const pipeline = parseEmberfile(emberfileText);
     stageRows = pipeline.stages.map((spec) => insertStage({
       id: nanoid(),
       run_id: runId,
@@ -189,12 +206,24 @@ async function runStage(runId, row, workdir) {
 // stage when we have one, mark it failed and everything else skipped.
 function failRunEarly(runId, stageRows, err) {
   const message = err instanceof PipelineError ? err.message : `internal error: ${err.message}`;
-  const offender = stageRows.find((s) => s.id === err.stagePk) ?? stageRows[0];
-  if (offender) {
-    systemLog(runId, offender, message);
-  } else {
-    console.error(`[emberflow] run ${runId} failed before stages were created: ${message}`);
+  let offender = stageRows.find((s) => s.id === err.stagePk) ?? stageRows[0];
+  if (!offender) {
+    // Clone/read/parse errors happen before any stage rows exist, and logs
+    // attach to stages — so create a synthetic "pipeline" stage to carry the
+    // error into the run's logs instead of only the server console.
+    offender = insertStage({
+      id: nanoid(),
+      run_id: runId,
+      stage_id: 'pipeline',
+      needs: '[]',
+      command: '—',
+      image: '—',
+      status: 'failed',
+    });
+    stageRows.push(offender);
+    broadcast({ type: 'stage:update', runId, stage: offender });
   }
+  systemLog(runId, offender, message);
   const now = Date.now();
   for (const row of stageRows) {
     const status = row === offender ? 'failed' : 'skipped';
