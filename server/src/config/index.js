@@ -41,6 +41,8 @@ export const config = {
   groqModel: process.env.GROQ_MODEL ?? 'llama-3.3-70b-versatile',
 
   runsDir: '/tmp/emberflow-runs',
+  deployProbeAttempts: 15, // health probe: attempts × interval ≈ 30s max wait
+  deployProbeIntervalMs: 2000,
   stageTimeoutMs: 10 * 60 * 1000,
   runTimeoutMs: 30 * 60 * 1000,
   logLineCap: 5000,

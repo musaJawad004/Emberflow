@@ -79,6 +79,7 @@ deploy:                      # OPTIONAL — Day 4
   start: node src/server.js  # command run inside the container
   port: 8080                 # container port
   hostPort: 8200             # host port to publish
+  healthPath: /health        # optional — HTTP probe target, default "/"
 ```
 
 Rules (unchanged from v0): unique stage `id`s; `needs` default `[]`; stages whose needs
@@ -140,8 +141,11 @@ On a passed run whose emberflow.yml has `deploy` (and all `deploy.needs` passed)
 - Stop the previous deployment for the same repo_name (docker rm -f, mark `stopped`).
 - `docker run -d --name ember-deploy-<repoName> -p <hostPort>:<port>
   -v <runWorkdir>:/app -w /app <image> sh -c "<start>"`
-- After 2s, verify the container is still running → deployment `running`,
-  else `failed` (capture container logs into the run's system logs).
+- Probe `http://127.0.0.1:<hostPort><healthPath>` (default `/`) with retries
+  (15 attempts, 2s apart, per-attempt 2s timeout; any HTTP status < 400 =
+  healthy; fast-fail if the container exits between attempts) → deployment
+  `running`, else `failed` (probe progress and container logs land in the
+  run's system logs).
 - `POST /api/deployments/:id/rollback` — target must be a `stopped` deployment whose
   workdir still exists; stops the current one, restarts the target's container from its
   workdir, new row with status `running` + `rolled_back_from` set. 409 if workdir pruned.
@@ -176,6 +180,7 @@ CREATE TABLE deployments (      -- ★ Day 4
   repo_name TEXT NOT NULL, container_name TEXT NOT NULL,
   image TEXT NOT NULL, start_cmd TEXT NOT NULL,
   port INTEGER NOT NULL, host_port INTEGER NOT NULL,
+  health_path TEXT NOT NULL DEFAULT '/',  -- ★ HTTP probe target
   status TEXT NOT NULL,         -- running|stopped|failed
   rolled_back_from TEXT,        -- deployment id this was restored from
   created_at INTEGER NOT NULL, stopped_at INTEGER

@@ -68,6 +68,7 @@ function migrate() {
       start_cmd        TEXT NOT NULL,
       port             INTEGER NOT NULL,
       host_port        INTEGER NOT NULL,
+      health_path      TEXT NOT NULL DEFAULT '/',
       status           TEXT NOT NULL,
       rolled_back_from TEXT,
       created_at       INTEGER NOT NULL,
@@ -79,6 +80,12 @@ function migrate() {
   const runColumns = db.prepare('PRAGMA table_info(runs)').all().map((c) => c.name);
   if (!runColumns.includes('repo_url')) {
     db.exec('ALTER TABLE runs ADD COLUMN repo_url TEXT');
+  }
+
+  // v1.1: deployments gain health_path (HTTP probe target for deploy verification).
+  const deploymentColumns = db.prepare('PRAGMA table_info(deployments)').all().map((c) => c.name);
+  if (!deploymentColumns.includes('health_path')) {
+    db.exec("ALTER TABLE deployments ADD COLUMN health_path TEXT NOT NULL DEFAULT '/'");
   }
 }
 
@@ -193,9 +200,9 @@ export function getAnalysisForRun(runId) {
 export function insertDeployment(deployment) {
   db.prepare(`
     INSERT INTO deployments (id, run_id, repo_name, container_name, image, start_cmd,
-                             port, host_port, status, rolled_back_from, created_at)
+                             port, host_port, health_path, status, rolled_back_from, created_at)
     VALUES (@id, @run_id, @repo_name, @container_name, @image, @start_cmd,
-            @port, @host_port, @status, @rolled_back_from, @created_at)
+            @port, @host_port, @health_path, @status, @rolled_back_from, @created_at)
   `).run(deployment);
   return getDeployment(deployment.id);
 }

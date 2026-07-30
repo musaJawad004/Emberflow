@@ -21,9 +21,11 @@ stages:
     needs: [lint, test]
     run: npm run build
 # After the whole run passes, deploy starts the app in a container,
-# mapping host port 8200 to the app's port 8080.
+# mapping host port 8200 to the app's port 8080. Emberflow probes
+# healthPath over HTTP until the app answers before calling it running.
 deploy:
   needs: [build]
   start: node src/server.js
   port: 8080
   hostPort: 8200
+  healthPath: /health

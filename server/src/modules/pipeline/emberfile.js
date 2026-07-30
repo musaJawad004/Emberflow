@@ -50,7 +50,11 @@ function parseDeploy(doc, stageIds) {
   for (const need of needs) {
     if (!stageIds.has(need)) throw new PipelineError(`deploy needs unknown stage "${need}"`);
   }
+  const healthPath = d.healthPath ?? '/';
+  if (typeof healthPath !== 'string' || !healthPath.startsWith('/')) {
+    throw new PipelineError('deploy.healthPath must be a path starting with "/"');
+  }
   const image = d.image ?? doc.image;
   if (!image) throw new PipelineError('deploy has no image (set a pipeline-level "image")');
-  return { needs, start: d.start, port: d.port, hostPort: d.hostPort, image };
+  return { needs, start: d.start, port: d.port, hostPort: d.hostPort, healthPath, image };
 }
