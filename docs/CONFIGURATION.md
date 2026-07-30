@@ -42,7 +42,7 @@ EMBER_DB=/var/lib/emberflow/emberflow.db
 ### `REDIS_URL`
 
 Where the BullMQ queue lives. Any Redis 6+/7 works; no persistence
-configuration is required (run state of record is SQLite, Redis only carries
+configuration is required (SQLite is the state of record — Redis only carries
 jobs).
 
 ```bash
@@ -87,8 +87,8 @@ GROQ_MODEL=llama-3.3-70b-versatile
 
 Defined in `server/src/config/index.js`:
 
-- Run workdirs: `/tmp/emberflow-runs/<runId>/repo`, last **20** kept
-  (needed for rollback), older pruned.
+- Run workdirs: `/tmp/emberflow-runs/<runId>/repo` — the last **20** are kept
+  (needed for rollback); older ones are pruned.
 - Per-stage timeout **10 min**, per-run timeout **30 min**.
 - Log cap **5000 lines per stage** (then truncated with a system notice).
 
@@ -105,8 +105,8 @@ Emberflow builds on every push once GitHub can reach `POST /webhook/github`.
 
    Restart the server.
 
-2. **Expose the endpoint.** GitHub must reach your machine over the public
-   internet. On a local machine, use a tunnel:
+2. **Expose the endpoint.** GitHub must be able to reach your machine over
+   the public internet. On a local machine, use a tunnel:
 
    ```bash
    ngrok http 4100
@@ -200,4 +200,4 @@ Practical implications:
   the server container as privileged and read [SECURITY.md](../SECURITY.md).
 
 A cleaner long-term design is discussed in
-[issues/011](issues/011-compose-runner-host-visible-workdirs.md).
+[issues/011](issues/011-compose-runner-needs-host-visible-workdirs.md).
