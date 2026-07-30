@@ -76,6 +76,7 @@ export interface Deployment {
   start_cmd: string;
   port: number; // container port
   host_port: number; // published on the host → http://localhost:<host_port>
+  health_path: string; // HTTP probe path used to verify the deploy (default "/")
   status: DeploymentStatus;
   rolled_back_from: string | null; // deployment id this was restored from
   created_at: number;

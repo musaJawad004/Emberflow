@@ -1,3 +1,8 @@
+/**
+ * @file Read-only React Flow graph of a run's stages. Stages are laid out in
+ * columns by dependency depth (derived from each stage's `needs`), with edges
+ * drawn from prerequisite to dependent and animated while the dependent runs.
+ */
 "use client";
 
 import { useMemo } from "react";
@@ -49,6 +54,12 @@ const nodeTypes = { stage: StageNode };
 
 /* ---------------------------------------------------------------- the DAG */
 
+/**
+ * The stage graph panel on the run-detail page. Non-interactive apart from
+ * node clicks, which report the clicked stage's `stage_id` via `onSelect`;
+ * `selectedId` highlights the corresponding node. Renders a placeholder
+ * message until at least one stage exists.
+ */
 export function StageDag({
   stages,
   selectedId,

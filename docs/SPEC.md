@@ -5,7 +5,7 @@ pipeline of stages in isolated Docker containers, streams logs live over WebSock
 diagnoses failures with an LLM (Groq), deploys green builds, and can roll back — all
 visible on a mission-control dashboard.
 
-This document is the contract between the server and the dashboard.
+This document is the binding contract between the server and the dashboard.
 v1 = v0 + folder-structure conventions + Day 2–5 features (webhooks, cancel, Groq
 failure analyst, deploy/rollback, hardening).
 
@@ -15,7 +15,7 @@ failure analyst, deploy/rollback, hardening).
 |------------|-------------------------------------------------|------|
 | server     | Node.js + Fastify 5, BullMQ (Redis), SQLite     | 4100 |
 | dashboard  | Next.js (App Router) + Tailwind + @xyflow/react | 3100 |
-| sample-app | Guinea pig app; its deploy serves on            | 8200 |
+| sample-app | Guinea pig app; when deployed it serves on      | 8200 |
 
 ## Folder structure (mandatory conventions)
 
@@ -79,6 +79,7 @@ deploy:                      # OPTIONAL — Day 4
   start: node src/server.js  # command run inside the container
   port: 8080                 # container port
   hostPort: 8200             # host port to publish
+  healthPath: /health        # optional — HTTP probe target, default "/"
 ```
 
 Rules (unchanged from v0): unique stage `id`s; `needs` default `[]`; stages whose needs
@@ -96,6 +97,11 @@ are satisfied run in parallel; failure marks transitive dependents `skipped`, ru
    Containers are NAMED so cancel can `docker rm -f` them. `EMBER_EXECUTOR=local`
    remains the dev fallback.
 4. Log lines + status transitions → SQLite + WS broadcast (as v0).
+   If the run dies before stage rows exist (clone failure, missing or invalid
+   emberflow.yml), the runner creates a single synthetic stage with
+   `stage_id: "pipeline"`, marks it `failed`, and attaches the error as a
+   system log line — so config errors are visible on the run page, not only
+   in the server console.
 5. Run finishes:
    - **failed** → analyst module fires (see below).
    - **passed + emberflow.yml has `deploy`** → deploy module fires (see below).
@@ -135,8 +141,11 @@ On a passed run whose emberflow.yml has `deploy` (and all `deploy.needs` passed)
 - Stop the previous deployment for the same repo_name (docker rm -f, mark `stopped`).
 - `docker run -d --name ember-deploy-<repoName> -p <hostPort>:<port>
   -v <runWorkdir>:/app -w /app <image> sh -c "<start>"`
-- After 2s, verify the container is still running → deployment `running`,
-  else `failed` (capture container logs into the run's system logs).
+- Probe `http://127.0.0.1:<hostPort><healthPath>` (default `/`) with retries
+  (15 attempts, 2s apart, per-attempt 2s timeout; any HTTP status < 400 =
+  healthy; fast-fail if the container exits between attempts) → deployment
+  `running`, else `failed` (probe progress and container logs land in the
+  run's system logs).
 - `POST /api/deployments/:id/rollback` — target must be a `stopped` deployment whose
   workdir still exists; stops the current one, restarts the target's container from its
   workdir, new row with status `running` + `rolled_back_from` set. 409 if workdir pruned.
@@ -171,6 +180,7 @@ CREATE TABLE deployments (      -- ★ Day 4
   repo_name TEXT NOT NULL, container_name TEXT NOT NULL,
   image TEXT NOT NULL, start_cmd TEXT NOT NULL,
   port INTEGER NOT NULL, host_port INTEGER NOT NULL,
+  health_path TEXT NOT NULL DEFAULT '/',  -- ★ HTTP probe target
   status TEXT NOT NULL,         -- running|stopped|failed
   rolled_back_from TEXT,        -- deployment id this was restored from
   created_at INTEGER NOT NULL, stopped_at INTEGER
@@ -207,10 +217,10 @@ v0 events unchanged (`hello`, `run:update`, `stage:update`, `log`). New:
   "custom…" (input for git URL or local path). Canceled pill style.
 - `/runs/[id]` (as v0) plus:
   - **Cancel button** (visible while queued/running).
-  - **DiagnosisCard** below the DAG when the run failed: shows Groq diagnosis
+  - **DiagnosisCard** below the DAG when the run failed: shows the Groq diagnosis
     (arrives live via `analysis` WS event, or REST on load); shows a subtle
-    "analyst skipped — no GROQ_API_KEY" note if run failed and no analysis exists
-    after finish + the system log line says skipped.
+    "analyst skipped — no GROQ_API_KEY" note if the run failed, no analysis exists
+    after finish, and the system log line says skipped.
   - Deploy result strip when the run deployed (link to /deployments).
 - `/deployments` — active deployment card (repo, port, uptime, link to
   http://localhost:<hostPort>) + history table with Rollback buttons on stopped rows.

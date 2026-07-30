@@ -16,9 +16,9 @@ npm run dev      # http://localhost:3100
 | `npm run dev` | `next dev -p 3100` |
 | `npm run build` | production build (also what CI runs) |
 | `npm run start` | serve the production build on :3100 |
-| `npm run lint` | eslint |
+| `npm run lint` | ESLint |
 
-The dashboard expects the server on `http://localhost:4100` (REST) and
+The dashboard expects the server at `http://localhost:4100` (REST) and
 `ws://localhost:4100/ws` (WebSocket) — both defined in `src/lib/api.ts`.
 
 ## Module map
@@ -41,8 +41,8 @@ src/
     analyst/         DiagnosisCard — live/REST diagnosis, "skipped" fallback
     deploy/          DeploymentList, RollbackButton, DeployStrip
   lib/               types.ts (API/WS contract), api.ts (REST client + base
-                     URLs), the WebSocket hook (auto-reconnect, per-event
-                     callback), format.ts
+                     URLs), useEmberSocket.ts (auto-reconnecting WebSocket
+                     hook, per-event callback), format.ts
 ```
 
 ## Theme token rules

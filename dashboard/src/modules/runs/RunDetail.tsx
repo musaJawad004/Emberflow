@@ -1,3 +1,10 @@
+/**
+ * @file Run-detail page container (/runs/[id]). Owns all state for one run:
+ * REST-loaded run/stages/log history, live WebSocket updates layered on top,
+ * stage selection, and offline recovery (refetch on socket reconnect, quiet
+ * polling while the server is unreachable). Renders the DAG, deploy strip,
+ * failure diagnosis, and log terminal panels.
+ */
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -27,6 +34,13 @@ import { CancelButton } from "./CancelButton";
  *  appended without duplicating what the fetch already returned. */
 type History = { lines: LogLine[]; lastTs: number };
 
+/**
+ * Client component behind the /runs/[id] route (id read via `useParams`).
+ * Log lines shown for a stage are its fetched history plus any live WS lines
+ * with a newer timestamp, so lines aren't duplicated across the two sources.
+ * A 404 from the run fetch renders a "not found" panel; any other failure is
+ * treated as offline and retried.
+ */
 export function RunDetail() {
   const { id } = useParams<{ id: string }>();
 

@@ -11,7 +11,13 @@ export class PipelineError extends Error {
 
 // Parses + validates emberflow.yml text into { name, stages, deploy }.
 export function parseEmberfile(text) {
-  const doc = YAML.parse(text);
+  let doc;
+  try {
+    doc = YAML.parse(text);
+  } catch (err) {
+    // YAML syntax errors span multiple lines; the first line carries the point.
+    throw new PipelineError(`emberflow.yml is not valid YAML: ${err.message.split('\n')[0]}`);
+  }
   if (!doc || !Array.isArray(doc.stages) || doc.stages.length === 0) {
     throw new PipelineError('emberflow.yml must define a non-empty "stages" list');
   }
@@ -44,7 +50,11 @@ function parseDeploy(doc, stageIds) {
   for (const need of needs) {
     if (!stageIds.has(need)) throw new PipelineError(`deploy needs unknown stage "${need}"`);
   }
+  const healthPath = d.healthPath ?? '/';
+  if (typeof healthPath !== 'string' || !healthPath.startsWith('/')) {
+    throw new PipelineError('deploy.healthPath must be a path starting with "/"');
+  }
   const image = d.image ?? doc.image;
   if (!image) throw new PipelineError('deploy has no image (set a pipeline-level "image")');
-  return { needs, start: d.start, port: d.port, hostPort: d.hostPort, image };
+  return { needs, start: d.start, port: d.port, hostPort: d.hostPort, healthPath, image };
 }
