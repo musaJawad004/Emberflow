@@ -52,6 +52,7 @@ export interface LogRow {
 
 /** What the log terminal actually renders (history rows + live WS events). */
 export interface LogLine {
+  id?: number;
   ts: number;
   stream: LogStream;
   line: string;

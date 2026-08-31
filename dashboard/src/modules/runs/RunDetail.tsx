@@ -32,7 +32,7 @@ import { CancelButton } from "./CancelButton";
 
 /** History logs for one stage, plus the newest ts so live lines can be
  *  appended without duplicating what the fetch already returned. */
-type History = { lines: LogLine[]; lastTs: number };
+type History = { lines: LogLine[]; lastTs: number; lastId: number };
 
 /**
  * Client component behind the /runs/[id] route (id read via `useParams`).
@@ -181,8 +181,14 @@ export function RunDetail() {
         setHistory((prev) => ({
           ...prev,
           [selectedId]: {
-            lines: logs.map((l) => ({ ts: l.ts, stream: l.stream, line: l.line })),
+            lines: logs.map((l) => ({
+              id: l.id,
+              ts: l.ts,
+              stream: l.stream,
+              line: l.line,
+            })),
             lastTs: logs.length > 0 ? logs[logs.length - 1].ts : -1,
+            lastId: logs.length > 0 ? logs[logs.length - 1].id : -1,
           },
         }));
       })
@@ -200,7 +206,12 @@ export function RunDetail() {
     const hist = history[selectedId];
     const live = wsLogs[selectedId] ?? [];
     if (!hist) return live; // history still loading — show live output already
-    return [...hist.lines, ...live.filter((l) => l.ts > hist.lastTs)];
+    return [
+      ...hist.lines,
+      ...live.filter((l) =>
+        l.id != null ? l.id > hist.lastId : l.ts > hist.lastTs,
+      ),
+    ];
   }, [selectedId, history, wsLogs]);
 
   const selectedStage = stages.find((s) => s.stage_id === selectedId) ?? null;
