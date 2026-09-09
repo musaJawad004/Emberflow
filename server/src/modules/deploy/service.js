@@ -152,8 +152,8 @@ function logDeploySystem(runId, line) {
   const anchor = stages[stages.length - 1];
   if (!anchor) return;
   const ts = Date.now();
-  insertLog(anchor.id, ts, 'system', line);
-  broadcast({ type: 'log', runId, stageId: anchor.stage_id, stream: 'system', line, ts });
+  const logId = insertLog(anchor.id, ts, 'system', line);
+  broadcast({ type: 'log', id: logId, runId, stageId: anchor.stage_id, stream: 'system', line, ts });
 }
 
 function logDeployFailure(runId, lines) {

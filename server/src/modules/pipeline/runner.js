@@ -168,8 +168,8 @@ async function runStage(runId, row, workdir) {
       lineCount++;
     }
     const ts = Date.now();
-    insertLog(row.id, ts, stream, line);
-    broadcast({ type: 'log', runId, stageId: row.stage_id, stream, line, ts });
+    const logId = insertLog(row.id, ts, stream, line);
+    broadcast({ type: 'log', id: logId, runId, stageId: row.stage_id, stream, line, ts });
   };
 
   const { exitCode, timedOut } = await executeStage({
@@ -234,8 +234,8 @@ function failRunEarly(runId, stageRows, err) {
 
 function systemLog(runId, stageRow, line) {
   const ts = Date.now();
-  insertLog(stageRow.id, ts, 'system', line);
-  broadcast({ type: 'log', runId, stageId: stageRow.stage_id, stream: 'system', line, ts });
+  const logId = insertLog(stageRow.id, ts, 'system', line);
+  broadcast({ type: 'log', id: logId, runId, stageId: stageRow.stage_id, stream: 'system', line, ts });
 }
 
 function finishRun(runId, status) {
