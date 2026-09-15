@@ -149,8 +149,10 @@ export function updateStage(pk, fields) {
 
 /** Appends one log line for a stage. */
 export function insertLog(stagePk, ts, stream, line) {
-  db.prepare('INSERT INTO logs (stage_pk, ts, stream, line) VALUES (?, ?, ?, ?)')
+  const info = db
+    .prepare('INSERT INTO logs (stage_pk, ts, stream, line) VALUES (?, ?, ?, ?)')
     .run(stagePk, ts, stream, line);
+  return Number(info.lastInsertRowid);
 }
 
 /** Logs for a run (joined with stage_id), oldest first; optional stageId filter. */

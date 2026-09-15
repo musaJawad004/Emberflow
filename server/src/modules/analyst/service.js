@@ -28,8 +28,8 @@ export async function analyzeRun(runId) {
   // System lines about the analyst attach to the first failed stage.
   const systemLog = (line) => {
     const ts = Date.now();
-    insertLog(failedStages[0].id, ts, 'system', line);
-    broadcast({ type: 'log', runId, stageId: failedStages[0].stage_id, stream: 'system', line, ts });
+    const logId = insertLog(failedStages[0].id, ts, 'system', line);
+    broadcast({ type: 'log', id: logId, runId, stageId: failedStages[0].stage_id, stream: 'system', line, ts });
   };
 
   if (!config.groqApiKey) {
